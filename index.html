@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Outonal 🍁</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body onload="iniciarSite()">
+  <div id="folhas-container"></div>
+
+  <div class="container">
+    <header>
+      <h1 id="saudacao">🍂 Olá!</h1>
+      <p id="data-hora"></p>
+      <p id="clima"></p>
+    </header>
+
+    <section class="todo">
+      <h2>✅ Lista de Tarefas</h2>
+      <input type="text" id="nova-tarefa" placeholder="Digite uma tarefa..." />
+      <button onclick="adicionarTarefa()">Adicionar</button>
+      <ul id="lista-tarefas"></ul>
+    </section>
+
+    <section class="lembrete">
+      <h2>🔔 Lembrete</h2>
+      <input type="text" id="texto-lembrete" placeholder="Ex: Reunião às 14h" />
+      <input type="datetime-local" id="data-lembrete" />
+      <button onclick="agendarLembrete()">Agendar</button>
+      <ul id="lista-lembretes"></ul>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
