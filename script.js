@@ -4,15 +4,13 @@ function iniciarSite() {
     buscarClima();
     criarFolhasCaindo();
     verificarLembretesPeriodicamente();
-    pedirPermissaoNotificacoes();
+    pedirPermissaoNotificacao();
   }
   
   function atualizarHora() {
     const agora = new Date();
     const hora = agora.toLocaleTimeString('pt-BR');
-    const data = agora.toLocaleDateString('pt-BR', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
+    const data = agora.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   
     document.getElementById('data-hora').innerText = `${data}, ${hora}`;
     atualizarSaudacao(agora.getHours());
@@ -20,19 +18,23 @@ function iniciarSite() {
   
   function atualizarSaudacao(hora) {
     let saudacao = "Olá!";
-    if (hora >= 5 && hora < 12) saudacao = "☀️ Bom dia!";
-    else if (hora >= 12 && hora < 18) saudacao = "🌤️ Boa tarde!";
-    else saudacao = "🌙 Boa noite!";
+    if (hora >= 5 && hora < 12) {
+      saudacao = "☀️ Bom dia!";
+    } else if (hora >= 12 && hora < 18) {
+      saudacao = "🌤️ Boa tarde!";
+    } else {
+      saudacao = "🌙 Boa noite!";
+    }
     document.getElementById('saudacao').innerText = `🍂 ${saudacao}`;
   }
   
   function buscarClima() {
     fetch("https://wttr.in/Bauru?format=%C+%t")
-      .then(res => res.text())
+      .then(response => response.text())
       .then(data => {
         document.getElementById('clima').innerText = `🌡️ Clima: ${data}`;
       })
-      .catch(() => {
+      .catch(error => {
         document.getElementById('clima').innerText = "Erro ao obter clima";
       });
   }
@@ -44,99 +46,96 @@ function iniciarSite() {
   
     const li = document.createElement("li");
     li.textContent = texto;
+  
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "✏️";
+    btnEditar.onclick = () => editarItem(li);
+  
+    const btnExcluir = document.createElement("button");
+    btnExcluir.textContent = "🗑️";
+    btnExcluir.onclick = () => li.remove();
+  
+    li.appendChild(btnEditar);
+    li.appendChild(btnExcluir);
+  
     document.getElementById("lista-tarefas").appendChild(li);
     input.value = "";
   }
   
-  // Lembretes com edição, exclusão e alarme
-  const lembretes = [];
+  function editarItem(li) {
+    const novoTexto = prompt("Editar item:", li.firstChild.textContent.trim());
+    if (novoTexto) {
+      li.firstChild.textContent = novoTexto + " ";
+    }
+  }
+  
+  let lembretes = [];
   
   function agendarLembrete() {
     const texto = document.getElementById("texto-lembrete").value.trim();
     const data = document.getElementById("data-lembrete").value;
   
-    if (!texto || !data) return;
-  
-    const id = Date.now();
-    lembretes.push({ id, texto, horario: new Date(data), disparado: false });
-    renderizarLembretes();
-  
-    document.getElementById("texto-lembrete").value = "";
-    document.getElementById("data-lembrete").value = "";
-  }
-  
-  function renderizarLembretes() {
-    const lista = document.getElementById("lista-lembretes");
-    lista.innerHTML = "";
-  
-    lembretes.forEach(lembrete => {
+    if (texto && data) {
       const li = document.createElement("li");
-      li.innerHTML = `
-        ${lembrete.texto} - ${lembrete.horario.toLocaleString('pt-BR')}
-        <button onclick="editarLembrete(${lembrete.id})">✏️</button>
-        <button onclick="removerLembrete(${lembrete.id})">❌</button>
-      `;
-      lista.appendChild(li);
-    });
-  }
+      li.textContent = `${texto} - ${new Date(data).toLocaleString('pt-BR')}`;
   
-  function editarLembrete(id) {
-    const lembrete = lembretes.find(l => l.id === id);
-    if (!lembrete) return;
+      const btnEditar = document.createElement("button");
+      btnEditar.textContent = "✏️";
+      btnEditar.onclick = () => editarItem(li);
   
-    const novoTexto = prompt("Editar lembrete:", lembrete.texto);
-    const novaData = prompt("Editar data e hora (AAAA-MM-DDTHH:MM):", lembrete.horario.toISOString().slice(0,16));
+      const btnExcluir = document.createElement("button");
+      btnExcluir.textContent = "🗑️";
+      btnExcluir.onclick = () => {
+        li.remove();
+        lembretes = lembretes.filter(l => l.texto !== texto || l.data !== data);
+      };
   
-    if (novoTexto && novaData) {
-      lembrete.texto = novoTexto;
-      lembrete.horario = new Date(novaData);
-      lembrete.disparado = false;
-      renderizarLembretes();
-    }
-  }
+      li.appendChild(btnEditar);
+      li.appendChild(btnExcluir);
   
-  function removerLembrete(id) {
-    const index = lembretes.findIndex(l => l.id === id);
-    if (index > -1) {
-      lembretes.splice(index, 1);
-      renderizarLembretes();
+      document.getElementById("lista-lembretes").appendChild(li);
+      lembretes.push({ texto, data });
+  
+      document.getElementById("texto-lembrete").value = "";
+      document.getElementById("data-lembrete").value = "";
     }
   }
   
   function verificarLembretesPeriodicamente() {
     setInterval(() => {
-      const agora = new Date();
+      const agora = new Date().toISOString().slice(0, 16);
       lembretes.forEach(lembrete => {
-        if (!lembrete.disparado && agora >= lembrete.horario) {
-          lembrete.disparado = true;
-          notificarLembrete(lembrete.texto);
+        if (lembrete.data === agora) {
+          tocarAlarme();
+          mostrarNotificacao(lembrete.texto);
+          lembretes = lembretes.filter(l => l !== lembrete);
         }
       });
-    }, 1000);
+    }, 60000); // Verifica a cada minuto
   }
   
-  function notificarLembrete(texto) {
-    const som = new Audio("https://www.soundjay.com/button/beep-07.wav");
-    som.play();
-  
-    if (Notification.permission === "granted") {
-      new Notification("🔔 Lembrete", {
-        body: texto,
-        icon: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png"
-      });
-    } else {
-      alert("⏰ Lembrete: " + texto);
-    }
+  function tocarAlarme() {
+    const audio = new Audio("https://www.soundjay.com/button/beep-10.wav"); // som mais alto
+    audio.volume = 1.0;
+    audio.play();
   }
   
-  function pedirPermissaoNotificacoes() {
-    if (Notification.permission !== "granted") {
+  function pedirPermissaoNotificacao() {
+    if ("Notification" in window) {
       Notification.requestPermission();
     }
   }
   
-  // Folhas
-  const folhaSVG = "https://cdn-icons-png.flaticon.com/512/415/415733.png";
+  function mostrarNotificacao(texto) {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("🔔 Lembrete", {
+        body: texto,
+        icon: "https://cdn-icons-png.flaticon.com/512/2948/2948035.png"
+      });
+    }
+  }
+  
+  const folhaSVG = "https://cdn-icons-png.flaticon.com/512/415/415733.png"; // ícone de maçã
   
   function criarFolha() {
     const folha = document.createElement("img");
