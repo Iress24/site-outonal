@@ -63,18 +63,26 @@ function iniciarSite() {
   }
   
   // Folhas caindo (maçãs neste caso)
-const folhaSVG = "https://cdn-icons-png.flaticon.com/512/415/415733.png"; // ícone de maçã
-function criarFolha() {
-  const folha = document.createElement("img");
-  folha.src = folhaSVG;
-  folha.classList.add("folha");
-
-  folha.style.left = Math.random() * window.innerWidth + "px";
-  folha.style.animationDuration = 4 + Math.random() * 5 + "s";
-  folha.style.opacity = Math.random();
-
-  document.getElementById("folhas-container").appendChild(folha);
-
-  setTimeout(() => folha.remove(), 10000);
-}
-setInterval(criarFolha, 500);
+  const folhaSVG = "https://cdn-icons-png.flaticon.com/512/415/415733.png"; // ícone de maçã
+  
+  function criarFolha() {
+    const folha = document.createElement("img");
+    folha.src = folhaSVG;
+    folha.classList.add("folha");
+  
+    // Tamanho aleatório entre 15 e 25px
+    const tamanho = 15 + Math.random() * 10;
+    folha.style.width = tamanho + "px";
+  
+    folha.style.left = Math.random() * window.innerWidth + "px";
+    folha.style.animationDuration = 5 + Math.random() * 5 + "s";
+    folha.style.opacity = 0.5 + Math.random() * 0.5;
+  
+    document.getElementById("folhas-container").appendChild(folha);
+  
+    setTimeout(() => folha.remove(), 10000);
+  }
+  
+  function criarFolhasCaindo() {
+    setInterval(criarFolha, 800);
+  }
